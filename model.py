@@ -24,6 +24,7 @@ class Model:
         self.incorrectly_checked = np.zeros((13, 13), dtype=bool)
         self.incorrectly_left_unchecked = np.zeros((13, 13), dtype=bool)
         self.correctly_checked = np.zeros((13, 13), dtype=bool)
+        self.copied_range = None
 
         self.card_ranks = 'AKQJT98765432'
         self.position_labels = ['UTG', 'UTG+1', 'UTG+2', 'LJ', 'HJ', 'CO', 'BN', 'SB', 'BB']

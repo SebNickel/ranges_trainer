@@ -25,9 +25,13 @@ class Controller:
             self.view.range_dict_list_widget.addItem(range_dict_dict['Name'])
         self.view.range_dict_list_widget.currentIndexChanged.connect(self.range_dict_list_index_change_callback)
         self.view.save_range_dict_button.setEnabled(False)
+        self.view.copy_range_button.setEnabled(False)
+        self.view.paste_range_button.setEnabled(False)
         self.view.new_range_dict_button.clicked.connect(self.new_range_dict_button_callback)
         self.view.edit_range_dict_button.toggled.connect(self.edit_range_dict_button_toggled_callback)
         self.view.save_range_dict_button.clicked.connect(self.save_button_callback)
+        self.view.copy_range_button.clicked.connect(self.copy_range_button_callback)
+        self.view.paste_range_button.clicked.connect(self.paste_range_button_callback)
 
         for button_id in range(9):
 
@@ -154,6 +158,7 @@ class Controller:
         self.model.editing_mode = True
         self.view.check_button.setEnabled(False)
         self.view.save_range_dict_button.setEnabled(True)
+        self.view.copy_range_button.setEnabled(True)
         self.view.set_editing_mode_colors()
         for row_i in range(13):
             for col_i in range(13):
@@ -166,6 +171,8 @@ class Controller:
         self.model.editing_mode = False
         self.view.check_button.setEnabled(True)
         self.view.save_range_dict_button.setEnabled(False)
+        self.view.copy_range_button.setEnabled(False)
+        self.view.paste_range_button.setEnabled(False)
         self.view.reset_colors()
 
     def save_button_callback(self):
@@ -184,6 +191,19 @@ class Controller:
             self.model.range_dict_list[self.model.current_range_dict_list_index]['Filepath'] = target_path
             self.model.save_range_dict(target_path)
             self.model.save_range_dict_list()
+
+    def copy_range_button_callback(self):
+
+        self.model.copied_range = self.model.reference_range
+        self.view.paste_range_button.setEnabled(True)
+
+    def paste_range_button_callback(self):
+
+        for row_i in range(13):
+            for col_i in range(13):
+                hand_button_id = to_list_index(row_i, col_i)
+                hand_button = self.view.hand_grid_button_group.button(hand_button_id)
+                hand_button.setChecked(self.model.copied_range[row_i][col_i])
 
     def radio_button_callback(self):
 

@@ -20,7 +20,7 @@ class View:
         self.parent_layout = QHBoxLayout()
         self.hand_grid_layout = QGridLayout()
         self.side_bar_layout = QVBoxLayout()
-        self.range_dict_button_layout = QHBoxLayout()
+        self.range_dict_button_layout = QGridLayout()
         self.hero_pos_layout = QGridLayout()
         self.action_layout = QGridLayout()
         self.villain_pos_layout = QGridLayout()
@@ -51,6 +51,8 @@ class View:
         self.new_range_dict_button = QPushButton('New')
         self.edit_range_dict_button = QPushButton('Edit')
         self.save_range_dict_button = QPushButton('Save')
+        self.copy_range_button = QPushButton('Copy')
+        self.paste_range_button = QPushButton('Paste')
         self.check_button = QPushButton('Check')
         self.reset_button = QPushButton('Reset')
 
@@ -73,9 +75,11 @@ class View:
         self.hand_button_size_policy.setHorizontalPolicy(QSizePolicy.Ignored)
 
         self.__populate_hand_grid_layout()
-        self.range_dict_button_layout.addWidget(self.new_range_dict_button)
-        self.range_dict_button_layout.addWidget(self.edit_range_dict_button)
-        self.range_dict_button_layout.addWidget(self.save_range_dict_button)
+        self.range_dict_button_layout.addWidget(self.new_range_dict_button, 0, 0)
+        self.range_dict_button_layout.addWidget(self.edit_range_dict_button, 0, 1)
+        self.range_dict_button_layout.addWidget(self.save_range_dict_button, 0, 2)
+        self.range_dict_button_layout.addWidget(self.copy_range_button, 1, 0)
+        self.range_dict_button_layout.addWidget(self.paste_range_button, 1, 1)
         self.__populate_radio_button_layout(self.hero_pos_layout,
                                             self.hero_pos_button_group,
                                             self.model.position_labels)
