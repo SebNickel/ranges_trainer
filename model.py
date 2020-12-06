@@ -12,13 +12,14 @@ class Model:
         with open(self.range_dict_list_filepath, 'r') as f:
             self.range_dict_list = json.load(f)
         self.current_range_dict_list_index = 0
-        with open(self.range_dict_list[self.current_range_dict_list_index]['Filepath'], 'rb') as f:
-            self.__reference_range_dict = pickle.load(f)
+        self.load_range_dict()
         self.editing_mode = False
 
-        self.__hero_position = 'UTG'
-        self.__action = 'RFI'
-        self.__villain_position = 'BB'
+        self.position_labels = self.__range_dict_schema['hero_position']
+        self.action_labels = self.__range_dict_schema['action']
+        self.__hero_position = self.position_labels[0]
+        self.__action = self.action_labels[0]
+        self.__villain_position = self.position_labels[0]
 
         self.range_entered = np.zeros((13, 13), dtype=bool)
         self.incorrectly_checked = np.zeros((13, 13), dtype=bool)
@@ -27,17 +28,16 @@ class Model:
         self.copied_range = None
 
         self.card_ranks = 'AKQJT98765432'
-        self.position_labels = ['UTG', 'UTG+1', 'UTG+2', 'LJ', 'HJ', 'CO', 'BN', 'SB', 'BB']
-        self.action_labels = \
-            ['RFI', 'Call RFI', '3bet', 'Call 3bet', '4bet', 'Call 4bet', '5bet shove', 'Limp-fold', 'Limp-call', 'Limp-3bet']
 
     @property
     def reference_range(self):
 
-        if self.action in ['RFI', 'Limp-fold', 'Limp-call', 'Limp-3bet']:
-            return self.__reference_range_dict[self.hero_position][self.action]
+        hero_pos_action = self.__reference_range_dict[self.hero_position][self.action]
+
+        if type(hero_pos_action) is not dict:
+            return hero_pos_action
         else:
-            return self.__reference_range_dict[self.hero_position][self.action][self.villain_position]
+            return hero_pos_action[self.villain_position]
 
     @property
     def hero_position(self):
@@ -67,23 +67,31 @@ class Model:
         self.__villain_position = self.position_labels[pos_index]
 
     @property
-    def inapplicable_options(self):
+    def applicable_radio_buttons(self):
 
-        option_dict = {'Position': [], 'Action': [], 'VS': []}
-        if self.hero_position == 'UTG':
-            option_dict['Action'].append('Call RFI')
-        elif self.hero_position == 'BB':
-            option_dict['Action'] += ['RFI', 'Limp-fold', 'Limp-call', 'Limp-3bet']
-        if self.action in ['RFI', 'Limp-fold', 'Limp-call', 'Limp-3bet']:
-            option_dict['VS'] = self.position_labels
-            option_dict['Position'].append('BB')
-        elif self.action == 'Call RFI':
-            option_dict['Position'].append('UTG')
-            hero_position_index = self.position_labels.index(self.hero_position)
-            option_dict['VS'] = self.position_labels[hero_position_index:]
+        applicable_dict = {'hero_position': self.position_labels, 'action': [], 'villain_position': []}
 
-        return option_dict
+        hero_pos_action = self.__reference_range_dict[self.hero_position][self.action]
+        if type(hero_pos_action) is dict:
+            applicable_dict['villain_position'] = list(hero_pos_action.keys())
 
+        for action_label in self.action_labels:
+            if action_label in self.__reference_range_dict[self.hero_position].keys():
+                applicable_dict['action'].append(action_label)
+                # hero_pos_action = self.__reference_range_dict[self.hero_position][action_label]
+                # if (type(hero_pos_action) is not dict or self.villain_position in hero_pos_action.keys()):
+                #     applicable_dict['action'].append(action_label)
+
+        # for hero_position_label in self.position_labels:
+        #     if self.action in self.__reference_range_dict[hero_position_label].keys():
+        #         hero_pos_action = self.__reference_range_dict[hero_position_label][self.action]
+        #         if ((type(hero_pos_action) is not dict)
+        #             or (self.villain_position in hero_pos_action.keys())):
+        #             applicable_dict['hero_position'].append(hero_position_label)
+
+        return applicable_dict
+
+    # TODO: This will need to change
     def create_new_empty_reference_range_dict(self):
 
         self.__reference_range_dict = {}
@@ -103,14 +111,17 @@ class Model:
         range_dict_descriptor = self.range_dict_list[self.current_range_dict_list_index]
         if range_dict_descriptor['Filepath'] is not None:
             with open(range_dict_descriptor['Filepath'], 'rb') as f:
-                self.__reference_range_dict = pickle.load(f)
+                self.__top_level_dict = pickle.load(f)
+            self.__range_dict_schema = self.__top_level_dict['schema']
+            self.__reference_range_dict = self.__top_level_dict['contents']
         else:
+            # TODO
             self.create_new_empty_reference_range_dict()
 
     def save_range_dict(self, target_path):
 
         with open(target_path, 'wb') as f:
-            pickle.dump(self.__reference_range_dict, f)
+            pickle.dump(self.__top_level_dict, f)
 
     def save_range_dict_list(self):
 

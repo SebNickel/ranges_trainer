@@ -33,15 +33,18 @@ class Controller:
         self.view.copy_range_button.clicked.connect(self.copy_range_button_callback)
         self.view.paste_range_button.clicked.connect(self.paste_range_button_callback)
 
-        for button_id in range(9):
+        for button_id in range(len(self.model.position_labels)):
 
             hero_pos_button = self.view.hero_pos_button_group.button(button_id)
-            action_button = self.view.action_button_group.button(button_id)
             villain_pos_button = self.view.villain_pos_button_group.button(button_id)
 
             hero_pos_button.toggled.connect(self.radio_button_callback)
-            action_button.toggled.connect(self.radio_button_callback)
             villain_pos_button.toggled.connect(self.radio_button_callback)
+
+        for button_id in range(len(self.model.action_labels)):
+
+            action_button = self.view.action_button_group.button(button_id)
+            action_button.toggled.connect(self.radio_button_callback)
 
         self.view.hero_pos_button_group.button(0).setChecked(True)
         self.view.action_button_group.button(0).setChecked(True)
@@ -75,57 +78,112 @@ class Controller:
         self.model.set_action_by_index(action_id)
         self.model.set_villain_position_by_index(villain_pos_id)
 
-    def enable_all_radio_buttons(self):
+    # def enable_all_radio_buttons(self):
+    #
+    #     self.view.villain_pos_label.setEnabled(True)
+    #
+    #     for id in range(9):
+    #
+    #         hero_pos_button = self.view.hero_pos_button_group.button(id)
+    #         action_button = self.view.action_button_group.button(id)
+    #         villain_pos_button = self.view.villain_pos_button_group.button(id)
+    #
+    #         hero_pos_button.setEnabled(True)
+    #         action_button.setEnabled(True)
+    #         villain_pos_button.setEnabled(True)
 
-        self.view.villain_pos_label.setEnabled(True)
+    # def disable_inapplicable_radio_buttons(self):
+    #
+    #     inapplicable_dict = self.model.inapplicable_radio_buttons
+    #
+    #     for pos_label in inapplicable_dict['hero_position']:
+    #         button_id = self.model.position_labels.index(pos_label)
+    #         button = self.view.hero_pos_button_group.button(button_id)
+    #         button.setEnabled(False)
+    #     for action_label in inapplicable_dict['action']:
+    #         button_id = self.model.action_labels.index(action_label)
+    #         button = self.view.action_button_group.button(button_id)
+    #         button.setEnabled(False)
+    #     for pos_label in inapplicable_dict['villain_position']:
+    #         button_id = self.model.position_labels.index(pos_label)
+    #         button = self.view.villain_pos_button_group.button(button_id)
+    #         button.setEnabled(False)
+    #     if len(inapplicable_dict['villain_position']) == len(self.model.position_labels):
+    #         self.view.villain_pos_label.setEnabled(False)
 
-        for id in range(9):
+        # if self.view.hero_pos_buttongroup.checkedId() == -1:
+        #     enabled_pos_indices = [i for i in range(len(self.model.position_labels))
+        #                            if self.model.position_labels[i] not in inapplicable_dict['Position']]
+        #     if len(enabled_pos_indices) > 0:
+        #         button_id = enabled_pos_indices[0]
+        #         self.view.hero_pos_button_group.button(button_id).setChecked(True)
+        # if self.view.action_button_group.checkedId() == -1:
+        #     enabled_action_indices = [i for i in range(len(self.model.action_labels))
+        #                            if self.model.action_labels[i] not in inapplicable_dict['Action']]
+        #     if len(enabled_action_indices) > 0:
+        #         button_id = enabled_action_indices[0]
+        #         self.view.action_button_group.button(button_id).setChecked(True)
+        # if self.view.villain_pos_button_group.checkedId() == -1:
+        #     enabled_pos_indices = [i for i in range(len(self.model.position_labels))
+        #                            if self.model.position_labels[i] not in inapplicable_dict['VS']]
+        #     if len(enabled_pos_indices) > 0:
+        #         button_id = enabled_pos_indices[0]
+        #         self.view.villain_pos_button_group.button(button_id).setChecked(True)
+
+    def disable_all_radio_buttons(self):
+
+        self.view.villain_pos_label.setEnabled(False)
+
+        for id in range(len(self.model.position_labels)):
 
             hero_pos_button = self.view.hero_pos_button_group.button(id)
-            action_button = self.view.action_button_group.button(id)
             villain_pos_button = self.view.villain_pos_button_group.button(id)
 
-            hero_pos_button.setEnabled(True)
-            action_button.setEnabled(True)
-            villain_pos_button.setEnabled(True)
+            hero_pos_button.setEnabled(False)
+            villain_pos_button.setEnabled(False)
 
-    def disable_inapplicable_radio_buttons(self):
+        for id in range(len(self.model.action_labels)):
 
-        inapplicable_dict = self.model.inapplicable_options
+            action_button = self.view.action_button_group.button(id)
+            action_button.setEnabled(False)
 
-        for pos_label in inapplicable_dict['Position']:
+    def enable_applicable_radio_buttons(self):
+
+        applicable_dict = self.model.applicable_radio_buttons
+
+        for pos_label in applicable_dict['hero_position']:
             button_id = self.model.position_labels.index(pos_label)
             button = self.view.hero_pos_button_group.button(button_id)
-            button.setEnabled(False)
-        for action_label in inapplicable_dict['Action']:
+            button.setEnabled(True)
+        for action_label in applicable_dict['action']:
             button_id = self.model.action_labels.index(action_label)
             button = self.view.action_button_group.button(button_id)
-            button.setEnabled(False)
-        for pos_label in inapplicable_dict['VS']:
+            button.setEnabled(True)
+        for pos_label in applicable_dict['villain_position']:
             button_id = self.model.position_labels.index(pos_label)
             button = self.view.villain_pos_button_group.button(button_id)
-            button.setEnabled(False)
-        if len(inapplicable_dict['VS']) == len(self.model.position_labels):
-            self.view.villain_pos_label.setEnabled(False)
+            button.setEnabled(True)
+        if len(applicable_dict['villain_position']) > 0:
+            self.view.villain_pos_label.setEnabled(True)
 
-        if self.view.hero_pos_button_group.checkedId() == -1:
-            enabled_pos_indices = [i for i in range(len(self.model.position_labels))
-                                   if self.model.position_labels[i] not in inapplicable_dict['Position']]
-            if len(enabled_pos_indices) > 0:
-                button_id = enabled_pos_indices[0]
-                self.view.hero_pos_button_group.button(button_id).setChecked(True)
-        if self.view.action_button_group.checkedId() == -1:
-            enabled_action_indices = [i for i in range(len(self.model.action_labels))
-                                   if self.model.action_labels[i] not in inapplicable_dict['Action']]
-            if len(enabled_action_indices) > 0:
-                button_id = enabled_action_indices[0]
-                self.view.action_button_group.button(button_id).setChecked(True)
-        if self.view.villain_pos_button_group.checkedId() == -1:
-            enabled_pos_indices = [i for i in range(len(self.model.position_labels))
-                                   if self.model.position_labels[i] not in inapplicable_dict['VS']]
-            if len(enabled_pos_indices) > 0:
-                button_id = enabled_pos_indices[0]
-                self.view.villain_pos_button_group.button(button_id).setChecked(True)
+        if (self.view.hero_pos_button_group.checkedButton() is None) \
+                or (not self.view.hero_pos_button_group.checkedButton().isEnabled()):
+            if len(applicable_dict['hero_position']) > 0:
+                hero_pos_label = applicable_dict['hero_position'][0]
+                hero_pos_id = self.model.position_labels.index(hero_pos_label)
+                self.view.hero_pos_button_group.button(hero_pos_id).setChecked(True)
+        if (self.view.action_button_group.checkedButton() is None) \
+                or (not self.view.action_button_group.checkedButton().isEnabled()):
+            if len(applicable_dict['action']) > 0:
+                action_label = applicable_dict['action'][0]
+                action_id = self.model.position_labels.index(action_label)
+                self.view.action_button_group.button(action_id).setChecked(True)
+        if (self.view.villain_pos_button_group.checkedButton()) is None \
+                or (not self.view.villain_pos_button_group.checkedButton().isEnabled()):
+            if len(applicable_dict['villain_position']) > 0:
+                villain_pos_label = applicable_dict['villain_position'][0]
+                villain_pos_id = self.model.position_labels.index(villain_pos_label)
+                self.view.villain_pos_button_group.button(villain_pos_id).setChecked(True)
 
     def range_dict_list_index_change_callback(self, index):
 
@@ -208,8 +266,10 @@ class Controller:
     def radio_button_callback(self):
 
         self.update_model_on_radio_buttons()
-        self.enable_all_radio_buttons()
-        self.disable_inapplicable_radio_buttons()
+        #self.enable_all_radio_buttons()
+        #self.disable_inapplicable_radio_buttons()
+        self.disable_all_radio_buttons()
+        self.enable_applicable_radio_buttons()
         if self.model.editing_mode:
             for row_i in range(13):
                 for col_i in range(13):
