@@ -6,9 +6,9 @@ import json
 
 class Model:
 
-    def __init__(self, reference_range_dict):
+    def __init__(self, range_dict_list_filepath=os.path.join(os.getcwd(), 'range_dicts', 'range_dict_list.json')):
 
-        self.range_dict_list_filepath = os.path.join(os.getcwd(), 'range_dicts', 'range_dict_list.json')
+        self.range_dict_list_filepath = range_dict_list_filepath
         with open(self.range_dict_list_filepath, 'r') as f:
             self.range_dict_list = json.load(f)
         self.current_range_dict_list_index = 0
