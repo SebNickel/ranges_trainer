@@ -35,6 +35,7 @@ class Controller:
         self.view.save_range_dict_button.clicked.connect(self.save_button_slot)
         self.view.copy_range_button.clicked.connect(self.copy_range_button_slot)
         self.view.paste_range_button.clicked.connect(self.paste_range_button_slot)
+        self.view.invert_range_button.clicked.connect(self.invert_range_button_slot)
 
         for radio_button_group in self.view.radio_button_groups:
             for button in radio_button_group.buttons():
@@ -231,6 +232,14 @@ class Controller:
                 hand_button_id = to_list_index(row_i, col_i)
                 hand_button = self.view.hand_grid_button_group.button(hand_button_id)
                 hand_button.setChecked(self.model.copied_range[row_i][col_i])
+
+    def invert_range_button_slot(self):
+
+        for row_i in range(13):
+            for col_i in range(13):
+                hand_button_id = to_list_index(row_i, col_i)
+                hand_button = self.view.hand_grid_button_group.button(hand_button_id)
+                hand_button.toggle()
 
     def radio_button_slot(self):
 

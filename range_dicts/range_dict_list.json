@@ -10,5 +10,25 @@
     {
         "Name": "Heads Up cash 100bb",
         "Filepath": "range_dicts/HeadsUp_cash_100bb.pkl"
+    },
+    {
+        "Name": "GTO implementable 75bb",
+        "Filepath": "/home/seb/PycharmProjects/ranges_trainer/range_dicts/GTO_implementable_75bb.pkl"
+    },
+    {
+        "Name": "GTO implementable 40bb",
+        "Filepath": "/home/seb/PycharmProjects/ranges_trainer/range_dicts/GTO_implementable_40bb.pkl"
+    },
+    {
+        "Name": "GTO implementable 25bb",
+        "Filepath": "/home/seb/PycharmProjects/ranges_trainer/range_dicts/GTO_implementable_25bb.pkl"
+    },
+    {
+        "Name": "GTO implementable 15bb",
+        "Filepath": "range_dicts/GTO_implementable_15bb.pkl"
+    },
+    {
+        "Name": "Art",
+        "Filepath": "/home/seb/PycharmProjects/ranges_trainer/range_dicts/art.pkl"
     }
 ]

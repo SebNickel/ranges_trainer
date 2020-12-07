@@ -85,6 +85,7 @@ class View:
         self.save_range_dict_button = QPushButton('Save')
         self.copy_range_button = QPushButton('Copy')
         self.paste_range_button = QPushButton('Paste')
+        self.invert_range_button = QPushButton('Invert')
         self.check_button = QPushButton('Check')
         self.reset_button = QPushButton('Reset')
 
@@ -107,6 +108,7 @@ class View:
         self.range_dict_button_layout.addWidget(self.save_range_dict_button, 0, 2)
         self.range_dict_button_layout.addWidget(self.copy_range_button, 1, 0)
         self.range_dict_button_layout.addWidget(self.paste_range_button, 1, 1)
+        self.range_dict_button_layout.addWidget(self.invert_range_button, 1, 2)
         self.command_button_layout.addWidget(self.check_button)
         self.command_button_layout.addWidget(self.reset_button)
 
