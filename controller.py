@@ -14,6 +14,9 @@ class Controller:
         self.model = model
         self.view = view
 
+        self.view.window.shift_key_pressed.connect(self.shift_key_pressed_slot)
+        self.view.window.shift_key_released.connect(self.shift_key_released_slot)
+
         for row_i in range(13):
             for col_i in range(13):
                 hand_button_id = to_list_index(row_i, col_i)
@@ -52,6 +55,24 @@ class Controller:
         self.view.check_button.clicked.connect(self.check)
         self.view.reset_button.clicked.connect(self.reset)
 
+    def shift_key_pressed_slot(self):
+
+        for row_i in range(13):
+            for col_i in range(13):
+                hand_button_id = to_list_index(row_i, col_i)
+                hand_button = self.view.hand_grid_button_group.button(hand_button_id)
+                hand_button.shift_key_pressed = True
+                if hand_button.underMouse():
+                    hand_button.toggle()
+
+    def shift_key_released_slot(self):
+
+        for row_i in range(13):
+            for col_i in range(13):
+                hand_button_id = to_list_index(row_i, col_i)
+                hand_button = self.view.hand_grid_button_group.button(hand_button_id)
+                hand_button.shift_key_pressed = False
+
     def __create_hand_button_function(self, button, button_row, button_col):
 
         def function():
@@ -59,6 +80,26 @@ class Controller:
             if self.model.editing_mode:
                 self.view.set_editing_mode_color(button)
                 self.model.reference_range[button_row][button_col] = button.isChecked()
+
+        return function
+
+    def __create_hand_button_under_mouse_function(self, button):
+
+        def function():
+            if button.isChecked():
+                button.setChecked(False)
+            else:
+                button.setChecked(True)
+
+        return function
+
+    def __create_hand_button_pressed_function(self, button):
+
+        def function():
+            if button.isChecked():
+                button.setChecked(False)
+            else:
+                button.setChecked(True)
 
         return function
 
@@ -214,8 +255,6 @@ class Controller:
     def radio_button_slot(self):
 
         self.update_model_on_radio_buttons()
-        #self.enable_all_radio_buttons()
-        #self.disable_inapplicable_radio_buttons()
         self.disable_all_radio_buttons()
         self.enable_applicable_radio_buttons()
         if self.model.editing_mode:
