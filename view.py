@@ -1,4 +1,5 @@
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, Signal
+from PySide2.QtGui import QEnterEvent, QKeyEvent
 from PySide2.QtWidgets import QWidget, QLabel, QGridLayout, QVBoxLayout, QHBoxLayout, QToolButton, \
     QPushButton, QRadioButton, QButtonGroup, QSizePolicy, QComboBox
 
@@ -10,13 +11,46 @@ def to_list_index(row_i, col_i, num_cols=13):
     return (row_i * num_cols) + col_i
 
 
+# I'd like to be able to toggle hand grid buttons by holding the left mouse button down and dragging the cursor over
+# them. Unfortunately the way widgets grab the mouse makes that very complicated, so until I find a way to make that
+# work, it will be the shift key that needs to be held down while dragging the cursor over the buttons.
+class HandGridButton(QToolButton):
+
+    def __init__(self):
+
+        super().__init__()
+        self.shift_key_pressed = False
+
+    def enterEvent(self, event: QEnterEvent):
+
+        if self.shift_key_pressed:
+            self.toggle()
+
+
+class CustomWindow(QWidget):
+
+    shift_key_pressed = Signal()
+    shift_key_released = Signal()
+
+    def keyPressEvent(self, event: QKeyEvent) -> None:
+
+        if event.key() == Qt.Key_Shift:
+            self.shift_key_pressed.emit()
+        super().keyPressEvent(event)
+
+    def keyReleaseEvent(self, event: QKeyEvent) -> None:
+
+        if event.key() == Qt.Key_Shift:
+            self.shift_key_released.emit()
+
+
 class View:
 
     def __init__(self, model: Model):
 
         self.model = model
 
-        self.window = QWidget()
+        self.window = CustomWindow()
         self.parent_layout = QHBoxLayout()
         self.hand_grid_layout = QGridLayout()
         self.side_bar_layout = QVBoxLayout()
@@ -158,7 +192,9 @@ class View:
             for col_i in range(13):
                 hand_str = self.__indices_to_hand_str(row_i, col_i)
                 button_id = to_list_index(row_i, col_i)
-                button = QToolButton()
+                button = HandGridButton() #QToolButton()
+                #button.setMouseTracking(True)
+
                 button.setCheckable(True)
                 button.setToolButtonStyle(Qt.ToolButtonTextOnly)
                 button.setText(hand_str)
