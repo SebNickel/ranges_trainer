@@ -1,5 +1,5 @@
 import os
-
+from collections import OrderedDict
 from PySide2.QtCore import QUrl
 from PySide2.QtWidgets import QInputDialog, QFileDialog, QLineEdit
 
@@ -36,21 +36,15 @@ class Controller:
         self.view.copy_range_button.clicked.connect(self.copy_range_button_slot)
         self.view.paste_range_button.clicked.connect(self.paste_range_button_slot)
 
-        for button_id in range(len(self.model.position_labels)):
+        for radio_button_group in self.view.radio_button_groups:
+            for button in radio_button_group.buttons():
+                button.toggled.connect(self.radio_button_slot)
 
-            hero_pos_button = self.view.hero_pos_button_group.button(button_id)
-            villain_pos_button = self.view.villain_pos_button_group.button(button_id)
-
-            hero_pos_button.toggled.connect(self.radio_button_slot)
-            villain_pos_button.toggled.connect(self.radio_button_slot)
-
-        for button_id in range(len(self.model.action_labels)):
-
-            action_button = self.view.action_button_group.button(button_id)
-            action_button.toggled.connect(self.radio_button_slot)
-
-        self.view.hero_pos_button_group.button(0).setChecked(True)
-        self.view.action_button_group.button(0).setChecked(True)
+        for i, (button_group_label, button_label) in enumerate(self.model.current_radio_button_setting.items()):
+            radio_button_group = self.view.radio_button_groups[i]
+            button_id = self.model.range_dict_schema[button_group_label].index(button_label)
+            button = radio_button_group.button(button_id)
+            button.setChecked(True)
 
         self.view.check_button.clicked.connect(self.check)
         self.view.reset_button.clicked.connect(self.reset)
@@ -111,73 +105,59 @@ class Controller:
 
     def update_model_on_radio_buttons(self):
 
-        hero_pos_id = self.view.hero_pos_button_group.checkedId()
-        action_id = self.view.action_button_group.checkedId()
-        villain_pos_id = self.view.villain_pos_button_group.checkedId()
-
-        self.model.set_hero_position_by_index(hero_pos_id)
-        self.model.set_action_by_index(action_id)
-        self.model.set_villain_position_by_index(villain_pos_id)
+        checked_ids = [radio_button_group.checkedId() for radio_button_group in self.view.radio_button_groups]
+        label_id_dict = OrderedDict(zip(self.model.range_dict_schema.keys(), checked_ids))
+        self.model.set_radio_button_setting(label_id_dict)
 
     def disable_all_radio_buttons(self):
 
-        self.view.villain_pos_label.setEnabled(False)
+        for label in self.view.radio_button_group_labels:
+            label.setEnabled(False)
 
-        for id in range(len(self.model.position_labels)):
-
-            hero_pos_button = self.view.hero_pos_button_group.button(id)
-            villain_pos_button = self.view.villain_pos_button_group.button(id)
-
-            hero_pos_button.setEnabled(False)
-            villain_pos_button.setEnabled(False)
-
-        for id in range(len(self.model.action_labels)):
-
-            action_button = self.view.action_button_group.button(id)
-            action_button.setEnabled(False)
+        for radio_button_group in self.view.radio_button_groups:
+            for button in radio_button_group.buttons():
+                button.setEnabled(False)
 
     def enable_applicable_radio_buttons(self):
 
         applicable_dict = self.model.applicable_radio_buttons
 
-        for pos_label in applicable_dict['hero_position']:
-            button_id = self.model.position_labels.index(pos_label)
-            button = self.view.hero_pos_button_group.button(button_id)
-            button.setEnabled(True)
-        for action_label in applicable_dict['action']:
-            button_id = self.model.action_labels.index(action_label)
-            button = self.view.action_button_group.button(button_id)
-            button.setEnabled(True)
-        for pos_label in applicable_dict['villain_position']:
-            button_id = self.model.position_labels.index(pos_label)
-            button = self.view.villain_pos_button_group.button(button_id)
-            button.setEnabled(True)
-        if len(applicable_dict['villain_position']) > 0:
-            self.view.villain_pos_label.setEnabled(True)
+        for i, (group_label, button_labels) in enumerate(applicable_dict.items()):
 
-        if (self.view.hero_pos_button_group.checkedButton() is None) \
-                or (not self.view.hero_pos_button_group.checkedButton().isEnabled()):
-            if len(applicable_dict['hero_position']) > 0:
-                hero_pos_label = applicable_dict['hero_position'][0]
-                hero_pos_id = self.model.position_labels.index(hero_pos_label)
-                self.view.hero_pos_button_group.button(hero_pos_id).setChecked(True)
-        if (self.view.action_button_group.checkedButton() is None) \
-                or (not self.view.action_button_group.checkedButton().isEnabled()):
-            if len(applicable_dict['action']) > 0:
-                action_label = applicable_dict['action'][0]
-                action_id = self.model.position_labels.index(action_label)
-                self.view.action_button_group.button(action_id).setChecked(True)
-        if (self.view.villain_pos_button_group.checkedButton()) is None \
-                or (not self.view.villain_pos_button_group.checkedButton().isEnabled()):
-            if len(applicable_dict['villain_position']) > 0:
-                villain_pos_label = applicable_dict['villain_position'][0]
-                villain_pos_id = self.model.position_labels.index(villain_pos_label)
-                self.view.villain_pos_button_group.button(villain_pos_id).setChecked(True)
+            if len(button_labels) > 0:
+                label_widget = self.view.radio_button_group_labels[i]
+                label_widget.setEnabled(True)
+                button_group = self.view.radio_button_groups[i]
+                button_ids = [self.model.range_dict_schema[group_label].index(button_label)
+                              for button_label in button_labels]
+                for button_id in button_ids:
+                    button = button_group.button(button_id)
+                    button.setEnabled(True)
+                if (button_group.checkedButton() is None) or (not button_group.checkedButton().isEnabled()):
+                    button_group.button(button_ids[0]).setChecked(True)
+
+    def setup_radio_butttons(self):
+
+        for radio_button_group in self.view.radio_button_groups:
+            for button in radio_button_group.buttons():
+                button.toggled.connect(self.radio_button_slot)
+
+        for i, (button_group_label, button_label) in enumerate(self.model.current_radio_button_setting.items()):
+            radio_button_group = self.view.radio_button_groups[i]
+            button_id = self.model.range_dict_schema[button_group_label].index(button_label)
+            button = radio_button_group.button(button_id)
+            button.setChecked(True)
 
     def range_dict_list_index_change_slot(self, index):
 
         self.model.current_range_dict_list_index = index
         self.model.load_range_dict()
+        self.view.clear_radio_button_parent_layout()
+        self.view.populate_radio_button_parent_layout()
+        self.model.check_default_radio_buttons()
+        self.setup_radio_butttons()
+        self.disable_all_radio_buttons()
+        self.enable_applicable_radio_buttons()
 
     def new_range_dict_button_slot(self):
 

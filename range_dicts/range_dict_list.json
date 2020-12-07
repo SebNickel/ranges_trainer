@@ -2,5 +2,13 @@
     {
         "Name": "JLitte cash 100bb ante",
         "Filepath": "range_dicts/JLittle_cash_100bb_ante.pkl"
+    },
+    {
+        "Name": "Push/Fold, big blind ante",
+        "Filepath": "range_dicts/Push-Fold_BigBlindAnte.pkl"
+    },
+    {
+        "Name": "Heads Up cash 100bb",
+        "Filepath": "range_dicts/HeadsUp_cash_100bb.pkl"
     }
 ]

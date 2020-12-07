@@ -11,6 +11,17 @@ def to_list_index(row_i, col_i, num_cols=13):
     return (row_i * num_cols) + col_i
 
 
+def clear_layout(layout):
+
+    while layout.count():
+        child = layout.takeAt(0)
+        if child.widget():
+            child.widget().deleteLater()
+        elif child.layout():
+            clear_layout(child.layout())
+            child.layout().deleteLater()
+
+
 # I'd like to be able to toggle hand grid buttons by holding the left mouse button down and dragging the cursor over
 # them. Unfortunately the way widgets grab the mouse makes that very complicated, so until I find a way to make that
 # work, it will be the shift key that needs to be held down while dragging the cursor over the buttons.
@@ -55,33 +66,20 @@ class View:
         self.hand_grid_layout = QGridLayout()
         self.side_bar_layout = QVBoxLayout()
         self.range_dict_button_layout = QGridLayout()
-        self.hero_pos_layout = QGridLayout()
-        self.action_layout = QGridLayout()
-        self.villain_pos_layout = QGridLayout()
+        self.radio_button_parent_layout = QVBoxLayout()
         self.command_button_layout = QHBoxLayout()
 
         self.range_dict_list_widget = QComboBox()
-        self.hero_pos_label = QLabel('<h2>Position</h2>')
-        self.action_label = QLabel('<h2>Action</h2>')
-        self.villain_pos_label = QLabel('<h2>VS</h2>')
 
         self.parent_layout.addLayout(self.hand_grid_layout)
         self.parent_layout.addLayout(self.side_bar_layout)
         self.side_bar_layout.addWidget(self.range_dict_list_widget)
         self.side_bar_layout.addLayout(self.range_dict_button_layout)
-        self.side_bar_layout.addWidget(self.hero_pos_label)
-        self.side_bar_layout.addLayout(self.hero_pos_layout)
-        self.side_bar_layout.addWidget(self.action_label)
-        self.side_bar_layout.addLayout(self.action_layout)
-        self.side_bar_layout.addWidget(self.villain_pos_label)
-        self.side_bar_layout.addLayout(self.villain_pos_layout)
+        self.side_bar_layout.addLayout(self.radio_button_parent_layout)
         self.side_bar_layout.addLayout(self.command_button_layout)
 
         self.hand_grid_button_group = QButtonGroup()
         self.hand_grid_button_group.setExclusive(False)
-        self.hero_pos_button_group = QButtonGroup()
-        self.action_button_group = QButtonGroup()
-        self.villain_pos_button_group = QButtonGroup()
         self.new_range_dict_button = QPushButton('New')
         self.edit_range_dict_button = QPushButton('Edit')
         self.save_range_dict_button = QPushButton('Save')
@@ -98,11 +96,6 @@ class View:
 
         self.edit_range_dict_button.setCheckable(True)
 
-        radio_button_horizontal_spacing = 2
-        self.hero_pos_layout.setHorizontalSpacing(radio_button_horizontal_spacing)
-        self.action_layout.setHorizontalSpacing(radio_button_horizontal_spacing)
-        self.villain_pos_layout.setHorizontalSpacing(radio_button_horizontal_spacing)
-
         self.hand_button_size_policy = QSizePolicy()
         self.hand_button_size_policy.setHeightForWidth(True)
         self.hand_button_size_policy.setVerticalPolicy(QSizePolicy.Minimum)
@@ -114,17 +107,10 @@ class View:
         self.range_dict_button_layout.addWidget(self.save_range_dict_button, 0, 2)
         self.range_dict_button_layout.addWidget(self.copy_range_button, 1, 0)
         self.range_dict_button_layout.addWidget(self.paste_range_button, 1, 1)
-        self.__populate_radio_button_layout(self.hero_pos_layout,
-                                            self.hero_pos_button_group,
-                                            self.model.position_labels)
-        self.__populate_radio_button_layout(self.action_layout,
-                                            self.action_button_group,
-                                            self.model.action_labels)
-        self.__populate_radio_button_layout(self.villain_pos_layout,
-                                            self.villain_pos_button_group,
-                                            self.model.position_labels)
         self.command_button_layout.addWidget(self.check_button)
         self.command_button_layout.addWidget(self.reset_button)
+
+        self.populate_radio_button_parent_layout()
 
         self.parent_layout.setSizeConstraint(QHBoxLayout.SetFixedSize)
 
@@ -192,8 +178,7 @@ class View:
             for col_i in range(13):
                 hand_str = self.__indices_to_hand_str(row_i, col_i)
                 button_id = to_list_index(row_i, col_i)
-                button = HandGridButton() #QToolButton()
-                #button.setMouseTracking(True)
+                button = HandGridButton()
 
                 button.setCheckable(True)
                 button.setToolButtonStyle(Qt.ToolButtonTextOnly)
@@ -201,6 +186,27 @@ class View:
                 button.setSizePolicy(self.hand_button_size_policy)
                 self.hand_grid_button_group.addButton(button, id=button_id)
                 self.hand_grid_layout.addWidget(button, row_i, col_i)
+
+    def clear_radio_button_parent_layout(self):
+
+        clear_layout(self.radio_button_parent_layout)
+
+    def populate_radio_button_parent_layout(self):
+
+        self.radio_button_layouts = [QGridLayout() for _ in self.model.range_dict_schema.keys()]
+        label_names = list(self.model.range_dict_schema.keys())
+        self.radio_button_group_labels = [QLabel('<h2>{}</h2>'.format(label_name)) for label_name in label_names]
+        for label, layout in zip(self.radio_button_group_labels, self.radio_button_layouts):
+            self.radio_button_parent_layout.addWidget(label)
+            self.radio_button_parent_layout.addLayout(layout)
+        self.radio_button_groups = [QButtonGroup() for _ in self.model.range_dict_schema.keys()]
+        radio_button_horizontal_spacing = 2
+        for layout in self.radio_button_layouts:
+            layout.setHorizontalSpacing(radio_button_horizontal_spacing)
+        for label_name, layout, button_group in zip(label_names, self.radio_button_layouts, self.radio_button_groups):
+            self.__populate_radio_button_layout(layout,
+                                                button_group,
+                                                self.model.range_dict_schema[label_name])
 
     @staticmethod
     def __populate_radio_button_layout(grid_layout, button_group, labels, num_cols=3):
