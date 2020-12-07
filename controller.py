@@ -23,28 +23,28 @@ class Controller:
 
         for range_dict_dict in self.model.range_dict_list:
             self.view.range_dict_list_widget.addItem(range_dict_dict['Name'])
-        self.view.range_dict_list_widget.currentIndexChanged.connect(self.range_dict_list_index_change_callback)
+        self.view.range_dict_list_widget.currentIndexChanged.connect(self.range_dict_list_index_change_slot)
         self.view.save_range_dict_button.setEnabled(False)
         self.view.copy_range_button.setEnabled(False)
         self.view.paste_range_button.setEnabled(False)
-        self.view.new_range_dict_button.clicked.connect(self.new_range_dict_button_callback)
-        self.view.edit_range_dict_button.toggled.connect(self.edit_range_dict_button_toggled_callback)
-        self.view.save_range_dict_button.clicked.connect(self.save_button_callback)
-        self.view.copy_range_button.clicked.connect(self.copy_range_button_callback)
-        self.view.paste_range_button.clicked.connect(self.paste_range_button_callback)
+        self.view.new_range_dict_button.clicked.connect(self.new_range_dict_button_slot)
+        self.view.edit_range_dict_button.toggled.connect(self.edit_range_dict_button_toggled_slot)
+        self.view.save_range_dict_button.clicked.connect(self.save_button_slot)
+        self.view.copy_range_button.clicked.connect(self.copy_range_button_slot)
+        self.view.paste_range_button.clicked.connect(self.paste_range_button_slot)
 
         for button_id in range(len(self.model.position_labels)):
 
             hero_pos_button = self.view.hero_pos_button_group.button(button_id)
             villain_pos_button = self.view.villain_pos_button_group.button(button_id)
 
-            hero_pos_button.toggled.connect(self.radio_button_callback)
-            villain_pos_button.toggled.connect(self.radio_button_callback)
+            hero_pos_button.toggled.connect(self.radio_button_slot)
+            villain_pos_button.toggled.connect(self.radio_button_slot)
 
         for button_id in range(len(self.model.action_labels)):
 
             action_button = self.view.action_button_group.button(button_id)
-            action_button.toggled.connect(self.radio_button_callback)
+            action_button.toggled.connect(self.radio_button_slot)
 
         self.view.hero_pos_button_group.button(0).setChecked(True)
         self.view.action_button_group.button(0).setChecked(True)
@@ -77,58 +77,6 @@ class Controller:
         self.model.set_hero_position_by_index(hero_pos_id)
         self.model.set_action_by_index(action_id)
         self.model.set_villain_position_by_index(villain_pos_id)
-
-    # def enable_all_radio_buttons(self):
-    #
-    #     self.view.villain_pos_label.setEnabled(True)
-    #
-    #     for id in range(9):
-    #
-    #         hero_pos_button = self.view.hero_pos_button_group.button(id)
-    #         action_button = self.view.action_button_group.button(id)
-    #         villain_pos_button = self.view.villain_pos_button_group.button(id)
-    #
-    #         hero_pos_button.setEnabled(True)
-    #         action_button.setEnabled(True)
-    #         villain_pos_button.setEnabled(True)
-
-    # def disable_inapplicable_radio_buttons(self):
-    #
-    #     inapplicable_dict = self.model.inapplicable_radio_buttons
-    #
-    #     for pos_label in inapplicable_dict['hero_position']:
-    #         button_id = self.model.position_labels.index(pos_label)
-    #         button = self.view.hero_pos_button_group.button(button_id)
-    #         button.setEnabled(False)
-    #     for action_label in inapplicable_dict['action']:
-    #         button_id = self.model.action_labels.index(action_label)
-    #         button = self.view.action_button_group.button(button_id)
-    #         button.setEnabled(False)
-    #     for pos_label in inapplicable_dict['villain_position']:
-    #         button_id = self.model.position_labels.index(pos_label)
-    #         button = self.view.villain_pos_button_group.button(button_id)
-    #         button.setEnabled(False)
-    #     if len(inapplicable_dict['villain_position']) == len(self.model.position_labels):
-    #         self.view.villain_pos_label.setEnabled(False)
-
-        # if self.view.hero_pos_buttongroup.checkedId() == -1:
-        #     enabled_pos_indices = [i for i in range(len(self.model.position_labels))
-        #                            if self.model.position_labels[i] not in inapplicable_dict['Position']]
-        #     if len(enabled_pos_indices) > 0:
-        #         button_id = enabled_pos_indices[0]
-        #         self.view.hero_pos_button_group.button(button_id).setChecked(True)
-        # if self.view.action_button_group.checkedId() == -1:
-        #     enabled_action_indices = [i for i in range(len(self.model.action_labels))
-        #                            if self.model.action_labels[i] not in inapplicable_dict['Action']]
-        #     if len(enabled_action_indices) > 0:
-        #         button_id = enabled_action_indices[0]
-        #         self.view.action_button_group.button(button_id).setChecked(True)
-        # if self.view.villain_pos_button_group.checkedId() == -1:
-        #     enabled_pos_indices = [i for i in range(len(self.model.position_labels))
-        #                            if self.model.position_labels[i] not in inapplicable_dict['VS']]
-        #     if len(enabled_pos_indices) > 0:
-        #         button_id = enabled_pos_indices[0]
-        #         self.view.villain_pos_button_group.button(button_id).setChecked(True)
 
     def disable_all_radio_buttons(self):
 
@@ -185,12 +133,12 @@ class Controller:
                 villain_pos_id = self.model.position_labels.index(villain_pos_label)
                 self.view.villain_pos_button_group.button(villain_pos_id).setChecked(True)
 
-    def range_dict_list_index_change_callback(self, index):
+    def range_dict_list_index_change_slot(self, index):
 
         self.model.current_range_dict_list_index = index
         self.model.load_range_dict()
 
-    def new_range_dict_button_callback(self):
+    def new_range_dict_button_slot(self):
 
         new_range_dict_name, clicked_ok = QInputDialog().getText(self.view.window,
                                                                  self.view.new_range_dict_dialog_title,
@@ -204,14 +152,14 @@ class Controller:
             self.view.range_dict_list_widget.setCurrentIndex(len(self.model.range_dict_list) - 1)
             self.view.edit_range_dict_button.setChecked(True)
 
-    def edit_range_dict_button_toggled_callback(self):
+    def edit_range_dict_button_toggled_slot(self):
 
         if self.view.edit_range_dict_button.isChecked():
-            self.edit_range_dict_button_checked_callback()
+            self.edit_range_dict_button_checked_slot()
         else:
-            self.edit_range_dict_button_unchecked_callback()
+            self.edit_range_dict_button_unchecked_slot()
 
-    def edit_range_dict_button_checked_callback(self):
+    def edit_range_dict_button_checked_slot(self):
 
         self.model.editing_mode = True
         self.view.check_button.setEnabled(False)
@@ -224,7 +172,7 @@ class Controller:
                 hand_button = self.view.hand_grid_button_group.button(hand_button_id)
                 hand_button.setChecked(self.model.reference_range[row_i][col_i])
 
-    def edit_range_dict_button_unchecked_callback(self):
+    def edit_range_dict_button_unchecked_slot(self):
 
         self.model.editing_mode = False
         self.view.check_button.setEnabled(True)
@@ -233,7 +181,7 @@ class Controller:
         self.view.paste_range_button.setEnabled(False)
         self.view.reset_colors()
 
-    def save_button_callback(self):
+    def save_button_slot(self):
 
         range_dict_name = self.view.range_dict_list_widget.currentText()
         default_url = QUrl(os.path.join(os.getcwd(), 'range_dicts', '{}{}'.format(range_dict_name, '.pkl')))
@@ -250,12 +198,12 @@ class Controller:
             self.model.save_range_dict(target_path)
             self.model.save_range_dict_list()
 
-    def copy_range_button_callback(self):
+    def copy_range_button_slot(self):
 
         self.model.copied_range = self.model.reference_range
         self.view.paste_range_button.setEnabled(True)
 
-    def paste_range_button_callback(self):
+    def paste_range_button_slot(self):
 
         for row_i in range(13):
             for col_i in range(13):
@@ -263,7 +211,7 @@ class Controller:
                 hand_button = self.view.hand_grid_button_group.button(hand_button_id)
                 hand_button.setChecked(self.model.copied_range[row_i][col_i])
 
-    def radio_button_callback(self):
+    def radio_button_slot(self):
 
         self.update_model_on_radio_buttons()
         #self.enable_all_radio_buttons()
