@@ -28,6 +28,10 @@
         "Filepath": "range_dicts/GTO_implementable_15bb.pkl"
     },
     {
+        "Name": "6max GTO implementable 100bb cash",
+        "Filepath": "/home/seb/PycharmProjects/ranges_trainer/range_dicts/6max_GTO_implementable_100bb_cash.pkl"
+    },
+    {
         "Name": "Art",
         "Filepath": "/home/seb/PycharmProjects/ranges_trainer/range_dicts/art.pkl"
     }

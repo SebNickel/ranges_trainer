@@ -1,5 +1,6 @@
 import os
 from collections import OrderedDict
+import random
 from PySide2.QtCore import QUrl
 from PySide2.QtWidgets import QInputDialog, QFileDialog, QLineEdit
 
@@ -47,8 +48,9 @@ class Controller:
             button = radio_button_group.button(button_id)
             button.setChecked(True)
 
-        self.view.check_button.clicked.connect(self.check)
-        self.view.reset_button.clicked.connect(self.reset)
+        self.view.random_button.clicked.connect(self.random_button_slot)
+        self.view.check_button.clicked.connect(self.check_button_slot)
+        self.view.reset_button.clicked.connect(self.reset_button_slot)
 
     def shift_key_pressed_slot(self):
 
@@ -184,6 +186,7 @@ class Controller:
     def edit_range_dict_button_checked_slot(self):
 
         self.model.editing_mode = True
+        self.view.random_button.setEnabled(False)
         self.view.check_button.setEnabled(False)
         self.view.save_range_dict_button.setEnabled(True)
         self.view.copy_range_button.setEnabled(True)
@@ -197,6 +200,7 @@ class Controller:
     def edit_range_dict_button_unchecked_slot(self):
 
         self.model.editing_mode = False
+        self.view.random_button.setEnabled(True)
         self.view.check_button.setEnabled(True)
         self.view.save_range_dict_button.setEnabled(False)
         self.view.copy_range_button.setEnabled(False)
@@ -253,7 +257,18 @@ class Controller:
                     hand_button = self.view.hand_grid_button_group.button(hand_button_id)
                     hand_button.setChecked(self.model.reference_range[row_i][col_i])
 
-    def check(self):
+    def random_button_slot(self):
+
+        for radio_button_group in self.view.radio_button_groups:
+            enabled_radio_buttons = [radio_button for radio_button in radio_button_group.buttons()
+                                     if radio_button.isEnabled()]
+            if len(enabled_radio_buttons) > 0:
+                random_radio_button = random.choice(enabled_radio_buttons)
+                random_radio_button.setChecked(True)
+            else:
+                break
+
+    def check_button_slot(self):
 
         self.update_model_on_radio_buttons()
         comparison_array = self.model.range_entered.astype(int) - self.model.reference_range.astype(int)
@@ -262,7 +277,7 @@ class Controller:
         self.model.correctly_checked = self.model.range_entered & self.model.reference_range
         self.view.display_feedback()
 
-    def reset(self):
+    def reset_button_slot(self):
 
         self.uncheck_all_hand_buttons()
         self.view.reset_colors()

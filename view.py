@@ -67,7 +67,7 @@ class View:
         self.side_bar_layout = QVBoxLayout()
         self.range_dict_button_layout = QGridLayout()
         self.radio_button_parent_layout = QVBoxLayout()
-        self.command_button_layout = QHBoxLayout()
+        self.command_button_layout = QGridLayout()  #QHBoxLayout()
 
         self.range_dict_list_widget = QComboBox()
 
@@ -86,6 +86,7 @@ class View:
         self.copy_range_button = QPushButton('Copy')
         self.paste_range_button = QPushButton('Paste')
         self.invert_range_button = QPushButton('Invert')
+        self.random_button = QPushButton('Random!')
         self.check_button = QPushButton('Check')
         self.reset_button = QPushButton('Reset')
 
@@ -109,8 +110,9 @@ class View:
         self.range_dict_button_layout.addWidget(self.copy_range_button, 1, 0)
         self.range_dict_button_layout.addWidget(self.paste_range_button, 1, 1)
         self.range_dict_button_layout.addWidget(self.invert_range_button, 1, 2)
-        self.command_button_layout.addWidget(self.check_button)
-        self.command_button_layout.addWidget(self.reset_button)
+        self.command_button_layout.addWidget(self.random_button, 0, 0, 1, 2)
+        self.command_button_layout.addWidget(self.check_button, 1, 0)
+        self.command_button_layout.addWidget(self.reset_button, 1, 1)
 
         self.populate_radio_button_parent_layout()
 
