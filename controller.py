@@ -49,8 +49,14 @@ class Controller:
             button.setChecked(True)
 
         self.view.random_button.clicked.connect(self.random_button_slot)
+        self.view.quiz_button.clicked.connect(self.quiz_button_slot)
         self.view.check_button.clicked.connect(self.check_button_slot)
         self.view.reset_button.clicked.connect(self.reset_button_slot)
+
+        # QuizView items
+
+        self.view.quiz_view.next_hand_button.clicked.connect(self.next_hand_button_slot)
+        self.view.quiz_view.randomize_range_checkbox.toggled.connect(self.randomize_range_checkbox_slot)
 
     def shift_key_pressed_slot(self):
 
@@ -139,7 +145,7 @@ class Controller:
                 if (button_group.checkedButton() is None) or (not button_group.checkedButton().isEnabled()):
                     button_group.button(button_ids[0]).setChecked(True)
 
-    def setup_radio_butttons(self):
+    def setup_radio_buttons(self):
 
         for radio_button_group in self.view.radio_button_groups:
             for button in radio_button_group.buttons():
@@ -158,7 +164,7 @@ class Controller:
         self.view.clear_radio_button_parent_layout()
         self.view.populate_radio_button_parent_layout()
         self.model.check_default_radio_buttons()
-        self.setup_radio_butttons()
+        self.setup_radio_buttons()
         self.disable_all_radio_buttons()
         self.enable_applicable_radio_buttons()
 
@@ -187,6 +193,7 @@ class Controller:
 
         self.model.editing_mode = True
         self.view.random_button.setEnabled(False)
+        self.view.quiz_button.setEnabled(False)
         self.view.check_button.setEnabled(False)
         self.view.save_range_dict_button.setEnabled(True)
         self.view.copy_range_button.setEnabled(True)
@@ -201,6 +208,7 @@ class Controller:
 
         self.model.editing_mode = False
         self.view.random_button.setEnabled(True)
+        self.view.quiz_button.setEnabled(True)
         self.view.check_button.setEnabled(True)
         self.view.save_range_dict_button.setEnabled(False)
         self.view.copy_range_button.setEnabled(False)
@@ -268,6 +276,14 @@ class Controller:
             else:
                 break
 
+    def quiz_button_slot(self):
+
+        self.reset_button_slot()
+        self.draw_random_hand_indices()
+        self.view.quiz_view.populate_window()
+        self.connect_answer_buttons()
+        self.view.quiz_view.window.show()
+
     def check_button_slot(self):
 
         self.update_model_on_radio_buttons()
@@ -281,3 +297,75 @@ class Controller:
 
         self.uncheck_all_hand_buttons()
         self.view.reset_colors()
+
+    # QuizView slots
+
+    def connect_answer_buttons(self):
+
+        for button in self.view.quiz_view.answer_button_group.buttons():
+            button.toggled.connect(self.answer_button_slot)
+
+    def draw_random_hand_indices(self):
+
+        if self.model.hand_quiz_marginal_hands_only:
+            self.model.hand_quiz_hand_indices = random.choice(self.model.marginal_index_pairs)
+        else:
+            row_i = random.randint(0, 12)
+            col_i = random.randint(0, 12)
+
+            self.model.hand_quiz_hand_indices = (row_i, col_i)
+
+    def next_hand_button_slot(self):
+
+        if self.model.randomize_range_in_hand_quiz:
+            self.random_button_slot()
+            self.draw_random_hand_indices()
+            self.view.quiz_view.populate_window()
+            self.connect_answer_buttons()
+        else:
+            self.draw_random_hand_indices()
+            self.view.quiz_view.display_next_hand(marginal_only=False)
+            self.reset_answer_buttons()
+
+    def reset_answer_buttons(self):
+
+        for button in self.view.quiz_view.answer_button_group.buttons():
+            if button.isChecked():
+                button.toggle()
+            button.setStyleSheet('background-color: white')
+
+    def randomize_range_checkbox_slot(self):
+
+        if self.view.quiz_view.randomize_range_checkbox.isChecked():
+            self.model.randomize_range_in_hand_quiz = True
+        else:
+            self.model.randomize_range_in_hand_quiz = False
+
+    def marginal_only_checkbox_slot(self):
+
+        if self.view.quiz_view.marginal_only_checkbox.isChecked():
+            self.model.hand_quiz_marginal_hands_only = True
+        else:
+            self.model.hand_quiz_marginal_hands_only = False
+
+    def answer_button_slot(self):
+
+        checked_button = self.view.quiz_view.answer_button_group.checkedButton()
+        if checked_button is not None:
+            selected_answer = checked_button.text()
+            # TODO: This doesn't check whether the answer is correct or not. Fix.
+            is_correct = self.model.hand_quiz_answer_is_correct(selected_answer)
+            if is_correct:
+                checked_button.setStyleSheet('background-color: green')
+            else:
+                checked_button.setStyleSheet('background-color: red')
+                correct_action = self.model.hand_quiz_correct_action
+                if correct_action in self.model.action_to_quiz_option_dict:
+                    correct_button_label = self.model.action_to_quiz_option_dict[correct_action]
+                else:
+                    correct_button_label = correct_action
+                for button in self.view.quiz_view.answer_button_group.buttons():
+                    if button.text() == correct_button_label:
+                        button.setStyleSheet('background-color: green')
+                        break
+            self.view.display_quiz_feedback(selected_answer, is_correct)

@@ -1,7 +1,9 @@
+import sys
+import random
 from PySide2.QtCore import Qt, Signal
 from PySide2.QtGui import QEnterEvent, QKeyEvent
 from PySide2.QtWidgets import QWidget, QLabel, QGridLayout, QVBoxLayout, QHBoxLayout, QToolButton, \
-    QPushButton, QRadioButton, QButtonGroup, QSizePolicy, QComboBox
+    QPushButton, QRadioButton, QButtonGroup, QSizePolicy, QComboBox, QApplication, QFrame, QCheckBox
 
 from model import Model
 
@@ -55,11 +57,32 @@ class CustomWindow(QWidget):
             self.shift_key_released.emit()
 
 
+def indices_to_hand_str(i, j):
+
+    card_ranks = 'AKQJT98765432'
+
+    if i < j:
+        rank1 = card_ranks[i]
+        rank2 = card_ranks[j]
+        suited_str = 's'
+    elif i > j:
+        rank1 = card_ranks[j]
+        rank2 = card_ranks[i]
+        suited_str = 'o'
+    else:
+        rank1 = card_ranks[i]
+        rank2 = card_ranks[j]
+        suited_str = ''
+
+    return '{}{}{}'.format(rank1, rank2, suited_str)
+
+
 class View:
 
     def __init__(self, model: Model):
 
         self.model = model
+        self.quiz_view = QuizView(model)
 
         self.window = CustomWindow()
         self.parent_layout = QHBoxLayout()
@@ -86,7 +109,8 @@ class View:
         self.copy_range_button = QPushButton('Copy')
         self.paste_range_button = QPushButton('Paste')
         self.invert_range_button = QPushButton('Invert')
-        self.random_button = QPushButton('Random!')
+        self.random_button = QPushButton('Random range')
+        self.quiz_button = QPushButton('Hand quiz')
         self.check_button = QPushButton('Check')
         self.reset_button = QPushButton('Reset')
 
@@ -110,7 +134,8 @@ class View:
         self.range_dict_button_layout.addWidget(self.copy_range_button, 1, 0)
         self.range_dict_button_layout.addWidget(self.paste_range_button, 1, 1)
         self.range_dict_button_layout.addWidget(self.invert_range_button, 1, 2)
-        self.command_button_layout.addWidget(self.random_button, 0, 0, 1, 2)
+        self.command_button_layout.addWidget(self.random_button, 0, 0)
+        self.command_button_layout.addWidget(self.quiz_button, 0, 1)
         self.command_button_layout.addWidget(self.check_button, 1, 0)
         self.command_button_layout.addWidget(self.reset_button, 1, 1)
 
@@ -221,3 +246,183 @@ class View:
             radio_button = QRadioButton(labels[i])
             grid_layout.addWidget(radio_button, row_i, col_i)
             button_group.addButton(radio_button, id=i)
+
+    def display_quiz_feedback(self, selected_answer: str, is_correct: bool):
+
+        self.reset_colors()
+        range_to_display = self.model.quiz_feedback_range(selected_answer)
+        range_button_ids = range_to_display.flatten().nonzero()[0]
+        for id in range_button_ids:
+            button = self.hand_grid_button_group.button(id)
+            button.setStyleSheet('background-color: darkblue; color: white')
+        quiz_hand_id = to_list_index(*self.model.hand_quiz_hand_indices)
+        quiz_hand_button = self.hand_grid_button_group.button(quiz_hand_id)
+        if is_correct:
+            quiz_hand_button.setStyleSheet('background-color: darkgreen; color: white')
+        else:
+            quiz_hand_button.setStyleSheet('background-color: darkred; color: white')
+
+
+class QuizView:
+
+    def __init__(self, model: Model):
+
+        self.model = model
+
+        self.window = QWidget()
+        self.layout = QVBoxLayout()
+        self.answer_button_layout = QVBoxLayout()
+        self.answer_button_group = QButtonGroup()
+        self.answer_button_group.setExclusive(False)
+        self.checkbox_layout = QHBoxLayout()
+
+        self.hand_display = QLabel()
+        self.position_display = QLabel()
+        self.prior_action_display = QLabel()
+        self.button_separator = QFrame()
+        self.next_hand_button = QPushButton('Next hand')
+        self.randomize_range_checkbox = QCheckBox('Random spot')
+        self.marginal_only_checkbox = QCheckBox('Marginal hands only')
+
+        self.button_separator.setFrameShape(QFrame.HLine)
+        self.button_separator.setFrameShadow(QFrame.Sunken)
+
+        self.layout.addWidget(self.hand_display)
+        self.layout.addWidget(self.position_display)
+        self.layout.addWidget(self.prior_action_display)
+        self.layout.addLayout(self.answer_button_layout)
+        self.layout.addWidget(self.button_separator)
+        self.layout.addLayout(self.checkbox_layout)
+        self.layout.addWidget(self.next_hand_button)
+
+        self.checkbox_layout.addWidget(self.randomize_range_checkbox)
+        self.checkbox_layout.addWidget(self.marginal_only_checkbox)
+
+        self.randomize_range_checkbox.setChecked(self.model.randomize_range_in_hand_quiz)
+        self.marginal_only_checkbox.setChecked(self.model.hand_quiz_marginal_hands_only)
+
+        self.hand_display.setAlignment(Qt.AlignCenter)
+
+        self.window.setLayout(self.layout)
+
+        self.layout.setSizeConstraint(QVBoxLayout.SetFixedSize)
+
+        self.populate_window()
+
+    def populate_window(self):
+
+        hand_str = indices_to_hand_str(*self.model.hand_quiz_hand_indices)
+        self.set_hand_display(hand_str)
+        self.set_position_display()
+        self.set_prior_action_display()
+        self.setup_answer_buttons()
+
+    def draw_random_hand(self, marginal_only=False):
+
+        if not marginal_only:
+            # TODO: Sample hands according to true probabilities (numbers of combos).
+            row_i = random.randint(0, 12)
+            col_i = random.randint(0, 12)
+        else:
+            # TODO
+            raise NotImplementedError()
+
+        return indices_to_hand_str(row_i, col_i)
+
+    def set_hand_display(self, hand_str):
+
+        self.hand_display.setText('<h1>{}</h1>'.format(hand_str))
+
+    def display_next_hand(self, marginal_only=False):
+
+        hand_str = indices_to_hand_str(*self.model.hand_quiz_hand_indices)
+        self.set_hand_display(hand_str)
+
+    def set_position_display(self):
+
+        position = self.model.current_radio_button_setting['Position']
+        self.position_display.setText('<b>Position:</b>\t{}'.format(position))
+
+    def set_prior_action_display(self):
+
+        action = self.model.current_radio_button_setting['Action']
+
+        if action == 'RFI' and self.model.current_radio_button_setting['Position'] == 'UTG':
+            prior_action_str = self.model.prior_action_dict['UTG_RFI']
+        else:
+            action_str_or_dict = self.model.prior_action_dict[action]
+            if type(action_str_or_dict) is str:
+                prior_action_str = action_str_or_dict
+            elif type(action_str_or_dict) is dict:
+                villain_pos = self.model.current_radio_button_setting['VS']
+                prior_action_str = action_str_or_dict[villain_pos]
+            else:
+                raise ValueError
+
+        self.prior_action_display.setText('<b>Prior action:</b>\t{}'.format(prior_action_str))
+
+    def setup_answer_buttons(self):
+
+        clear_layout(self.answer_button_layout)
+
+        correct_action = self.model.current_radio_button_setting['Action']
+        answer_option_labels = self.model.hand_quiz_answer_dict['options'][correct_action]
+        for id, label in enumerate(answer_option_labels):
+            button = QPushButton(label)
+            button.setCheckable(True)
+            self.answer_button_layout.addWidget(button)
+            self.answer_button_group.addButton(button, id)
+
+
+# TODO: Here's a hardwired dict that assigns "Prior action" strings to radio button settings. Add non-hardwired
+# implementation. THIS ONE IS STRICTLY FOR 6MAX.
+def create_prior_action_dict():
+
+    pa_dict = {'RFI': 'Folded down.',
+               'Call RFI': {},
+               '3bet': {},
+               'Call 3bet': {},
+               '4bet': {},
+               'Limp/fold': 'Folded down.',
+               'Limp/call': 'Folded down.',
+               'Limp/3bet': 'Folded down.',
+               'Raise vs limp': 'SB limps.'}
+
+    positions = ['UTG', 'HJ', 'CO', 'BN', 'SB', 'BB']
+    for villain_pos in positions:
+        if villain_pos != 'BB':
+            pa_dict['Call RFI'][villain_pos] = '{} opens.'.format(villain_pos)
+            pa_dict['3bet'][villain_pos] = '{} opens.'.format(villain_pos)
+        if villain_pos != 'UTG':
+            pa_dict['Call 3bet'][villain_pos] = 'Hero opens. {} 3bets.'.format(villain_pos)
+            pa_dict['4bet'][villain_pos] = 'Hero opens. {} 3bets.'.format(villain_pos)
+
+    return pa_dict
+
+
+# Nother temporary hardwired dict:
+answers_dict = {
+    'RFI': ['Raise', 'Fold'],
+    'Call RFI': ['Call', '3bet', 'Fold'],
+    '3bet': ['Call', '3bet', 'Fold'],
+    'Limp/fold': ['Limp/fold', 'Limp/call', 'Limp/3bet', 'Fold'],
+    'Limp/call': ['Limp/fold', 'Limp/call', 'Limp/3bet', 'Fold'],
+    'Limp/3bet': ['Limp/fold', 'Limp/call', 'Limp/3bet', 'Fold'],
+    'Raise vs limp': ['Raise', 'Check'],
+    '4bet': ['4bet', 'Fold']  # There's no "Call" option here because I'm testing this with a somewhat incomplete range_dict.
+}
+
+
+if __name__ == '__main__':
+
+    app = QApplication()
+
+    model = Model()
+    model.current_range_dict_list_index = 7
+    model.load_range_dict()
+    model.set_radio_button_setting({'Position': 1, 'Action': 3, 'VS': 3})
+
+    quiz_view = QuizView(model)
+    quiz_view.window.show()
+
+    sys.exit(app.exec_())
