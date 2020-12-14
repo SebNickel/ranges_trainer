@@ -1,7 +1,7 @@
 [
     {
         "Name": "JLitte cash 100bb ante",
-        "Filepath": "range_dicts/JLittle_cash_100bb_ante.pkl"
+        "Filepath": "ranges_trainer/range_dicts/JLittle_cash_100bb_ante.pkl"
     },
     {
         "Name": "Push/Fold, big blind ante",
@@ -13,15 +13,15 @@
     },
     {
         "Name": "GTO implementable 75bb",
-        "Filepath": "/home/seb/PycharmProjects/ranges_trainer/range_dicts/GTO_implementable_75bb.pkl"
+        "Filepath": "range_dicts/GTO_implementable_75bb.pkl"
     },
     {
         "Name": "GTO implementable 40bb",
-        "Filepath": "/home/seb/PycharmProjects/ranges_trainer/range_dicts/GTO_implementable_40bb.pkl"
+        "Filepath": "range_dicts/GTO_implementable_40bb.pkl"
     },
     {
         "Name": "GTO implementable 25bb",
-        "Filepath": "/home/seb/PycharmProjects/ranges_trainer/range_dicts/GTO_implementable_25bb.pkl"
+        "Filepath": "range_dicts/GTO_implementable_25bb.pkl"
     },
     {
         "Name": "GTO implementable 15bb",
@@ -29,10 +29,10 @@
     },
     {
         "Name": "6max GTO implementable 100bb cash",
-        "Filepath": "/home/seb/PycharmProjects/ranges_trainer/range_dicts/6max_GTO_implementable_100bb_cash.pkl"
+        "Filepath": "range_dicts/6max_GTO_implementable_100bb_cash.pkl"
     },
     {
         "Name": "Art",
-        "Filepath": "/home/seb/PycharmProjects/ranges_trainer/range_dicts/art.pkl"
+        "Filepath": "ranges_trainer/range_dicts/art.pkl"
     }
 ]
